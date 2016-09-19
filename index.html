@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <title>Jira Version</title>
         <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
         <link rel="stylesheet" href="js/libs/angular-material/angular-material.css">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
@@ -158,16 +159,23 @@
                 function VersionController($scope, $jira, $mdDialog) {
                     $scope.versions = {};
                     $scope.projects = [
+                        {displayName: 'Auvergne / Auvergnemobilite', key: 'AAM', id: 12635, checked: true},
+                        {displayName: 'Basse Normandie / Comment j\'y vais', key: 'CRBN', id: 11001, checked: true},
                         {displayName: 'Bretagne / Breizhgo', key: 'BB', id: 10809, checked: true},
                         {displayName: 'Centre / jvmalin', key: 'CJ', id: 10812, checked: true},
                         {displayName: 'Champagne Ardenne / Vitici', key: 'CAV', id: 11507, checked: true},
+                        {displayName: 'Pays de la Loire / destineo3', key: 'PDLLD', id: 11302, checked: true},
+                        {displayName: 'SQWAL', key: 'SQWAL', id: 10821, checked: true},
+
+                        {displayName: 'Colvert', key: 'COL', id: 12613, checked: true},
+                        {displayName: 'Rennes / Star', key: 'STAR', id: 12003, checked: true},
+
                         {displayName: 'CMS', key: 'CMS', id: 11520, checked: true},
                         {displayName: 'NMP - P&P', key: 'PP', id: 11803, checked: true},
-                        {displayName: 'Pays de la Loire / destineo3', key: 'PDLLD', id: 11302, checked: true},
-                        {displayName: 'Rennes / Star', key: 'STAR', id: 12003, checked: true},
-                        {displayName: 'SQWAL', key: 'SQWAL', id: 10821, checked: true},
-                        {displayName: 'Basse Normandie / Comment j\'y vais', key: 'CRBN', id: 11001, checked: true},
-                        {displayName: 'Colvert', key: 'COL', id: 12613, checked: true}
+                        {displayName: 'Se repérer / RCU', key: 'RCU', id: 12803, checked: true},
+                        {displayName: 'Réseaulution / RZO', key: 'RZO', id: 12801, checked: true},
+                        {displayName: 'Itinéraire / ITI', key: 'ITI', id: 12800, checked: true},
+                        {displayName: 'Horaire / HOR', key: 'HOR', id: 12802, checked: true}
                     ];
                     $scope.ready = function() {
                         return $jira.isReady();
