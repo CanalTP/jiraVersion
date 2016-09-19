@@ -47,7 +47,7 @@
                     </thead>
                     <tbody>
                         <tr ng-repeat="version in versions | orderBy: '-version'">
-                            <td style="border-right: 1px solid #ddd;white-space: nowrap;">
+                            <td style="border-right: 1px solid #ddd; white-space: nowrap;">
                                 {{ version.name }}
                                 <md-button ng-click="releaseVersion(version)" aria-label="Release version" ng-attr-title="click to add this version to selected projects">
                                     <span class="glyphicon glyphicon-compressed" aria-hidden="true"></span>
@@ -239,6 +239,10 @@
                                 };
                                 $jira.put('version/' + project.id, update).success(function(version) {
                                     $scope.addVersionToScope(version);
+                                }).error(function(response) {
+                                    if (response[0] == void 0 && response.errorMessages[0] !== void 0) {
+                                        console.log(response.errorMessages[0]);
+                                    }
                                 });
                             }
                         }
