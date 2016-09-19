@@ -47,8 +47,9 @@
                     </thead>
                     <tbody>
                         <tr ng-repeat="version in versions | orderBy: '-version'">
-                            <td style="border-right: 1px solid #ddd;">
-                                {{ version.name }}&nbsp;<md-button ng-click="releaseVersion(version)" aria-label="Release version" ng-attr-title="click to add this version to selected projects">
+                            <td style="border-right: 1px solid #ddd;white-space: nowrap;">
+                                {{ version.name }}
+                                <md-button ng-click="releaseVersion(version)" aria-label="Release version" ng-attr-title="click to add this version to selected projects">
                                     <span class="glyphicon glyphicon-compressed" aria-hidden="true"></span>
                                     <md-tooltip>Release version</md-tooltip>
                                 </md-button>
