@@ -1,0 +1,19 @@
+<md-dialog aria-label="Add a version">
+    <md-toolbar>
+        <h2 class="md-toolbar-tools">
+            <span>Add a version</span>
+        </h2>
+    </md-toolbar>
+    <md-content>
+        <form>
+            <md-text-float label="Name" ng-model="version.name"></md-text-float>
+            <md-text-float label="Description" ng-model="version.description"></md-text-float>
+            <md-text-float label="Start (YYYY-MM-DD)" ng-model="version.startDate"></md-text-float>
+            <md-text-float label="Release (YYYY-MM-DD)" ng-model="version.releaseDate"></md-text-float>
+        </form>
+    </md-content>
+    <div class="md-actions">
+        <md-button ng-click="hideForm()">Annuler</md-button>
+        <md-button class="md-primary" ng-click="submitForm()">Envoyer</md-button>
+    </div>
+</md-dialog>

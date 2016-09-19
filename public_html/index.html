@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+        <link rel="stylesheet" href="js/libs/angular-material/angular-material.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+    </head>
+    <body ng-app="JiraHelper">
+        <md-toolbar layout="row">
+            <h2 class="md-toolbar-tools">
+                <span>Jira Helper</span>
+            </h2>
+        </md-toolbar>
+
+        <md-card ng-controller="LoginController" ng-hide="logged()" ng-init="check()">
+            <h2>User</h2>
+            <form layout="row" layout-align="start center">
+                <md-text-float label="Login" ng-model="user.login"></md-text-float>
+                <md-text-float label="Password" ng-model="user.password" type="password"></md-text-float>
+                <md-button class="md-raised md-primary" ng-click="check()" aria-label="Connect">Connect</md-button>
+            </form>
+        </md-card>
+
+        <section ng-controller="VersionController" ng-show="ready()" layout="row">
+            <section>
+                <md-checkbox ng-model="project.checked" aria-label="{{ project.displayName }}" ng-repeat="project in projects">
+                    {{ project.displayName }}
+                </md-checkbox>
+            </section>
+            <md-content flex>
+                <md-button ng-click="fetchVersions(projects)" aria-label="Refresh versions">
+                    <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Refresh versions
+                    <!--<md-tooltip>Refresh versions</md-tooltip>-->
+                </md-button>
+                <md-button ng-click="showForm($event)" aria-label="Add version">
+                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add version
+                    <!--<md-tooltip>Add version</md-tooltip>-->
+                </md-button>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <td>Version</td>
+                            <td ng-repeat="project in projects | filter:{checked: true}">{{ project.displayName }}</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="version in versions | orderBy: '-version'">
+                            <td>
+                                {{ version.name }}
+                                <md-button ng-click="releaseVersion(version)" aria-label="Release version">
+                                    <span class="glyphicon glyphicon-compressed" aria-hidden="true"></span>
+                                    <md-tooltip>Release version</md-tooltip>
+                                </md-button>
+                            </td>
+                            <td ng-repeat="selectedproject in projects | filter:{checked: true}" style="text-align: center;">
+                                <span class="glyphicon glyphicon-ok" aria-hidden="true" ng-if="version.projects[selectedproject.id].description" title="{{ version.projects[selectedproject.id].description }}"></span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </md-content>
+        </section>
+
+        <script src="js/libs/angular.js/angular.js"></script>
+        <script src="js/libs/angular.js/angular-aria.js"></script>
+        <script src="js/libs/angular.js/angular-animate.js"></script>
+        <script src="js/libs/hammerjs/hammer.js"></script>
+        <script src="js/libs/angular-material/angular-material.js"></script>
+        <script>
+                // Include app dependency on ngMaterial
+                angular.module('JiraHelper', ['ngMaterial'])
+                    .factory('$user', function () {
+                        var user = {};
+                        return function (_user) {
+                            if (_user !== void 0) {
+                                user = _user;
+                            }
+                            return user;
+                        };
+                    })
+                    .factory('$jira', ['$http', '$user', function ($http, $user) {
+                        var logged = false;
+                        return {
+                            getUsername: function () {
+                                return $user().login;
+                            },
+                            isReady: function () {
+                                return logged;
+                            },
+                            checkUser: function() {
+                                this.get('myself')
+                                    .success(function(){
+                                        logged = true;
+                                    })
+                                    .error(function(){
+                                        logged = false;
+                                    });
+                            },
+                            get: function (url, data) {
+                                return $http({
+                                    method: 'GET',
+                                    url: 'proxy.php',
+                                    headers: {
+                                        'X-Proxy-URL': 'http://jira.canaltp.fr/rest/api/2/' + url,
+//                                        'X-Proxy-URL': 'http://jira.canaltp.fr/rest/greenhopper/1.0/' + url,
+                                        'Content-Type': 'application/json',
+                                        'Authorization': 'Basic ' + window.btoa($user().login + ':' + $user().password)
+                                    },
+                                    data: data || {}
+                                });
+                            },
+                            put: function (url, data) {
+                                return $http({
+                                    method: 'PUT',
+                                    url: 'proxy.php',
+                                    headers: {
+                                        'X-Proxy-URL': 'http://jira.canaltp.fr/rest/api/2/' + url,
+//                                        'X-Proxy-URL': 'http://jira.canaltp.fr/rest/greenhopper/1.0/' + url,
+                                        'Content-Type': 'application/json',
+                                        'Authorization': 'Basic ' + window.btoa($user().login + ':' + $user().password)
+                                    },
+                                    data: data || {}
+                                });
+                            },
+                            post: function (url, data) {
+                                return $http({
+                                    method: 'POST',
+                                    url: 'proxy.php',
+                                    headers: {
+                                        'X-Proxy-URL': 'http://jira.canaltp.fr/rest/api/2/' + url,
+//                                        'X-Proxy-URL': 'http://jira.canaltp.fr/rest/greenhopper/1.0/' + url,
+                                        'Content-Type': 'application/json',
+                                        'Authorization': 'Basic ' + window.btoa($user().login + ':' + $user().password)
+                                    },
+                                    data: data || {}
+                                });
+                            }
+                        };
+                    }])
+                    .controller("LoginController", ['$scope', '$user', '$jira', LoginController])
+                    .controller("VersionModalController", ['$scope', '$mdDialog', VersionModalController])
+                    .controller("VersionController", ['$scope', '$jira', '$mdDialog', VersionController]);
+
+                function LoginController($scope, $user, $jira) {
+                    $scope.$watch("user", function (newValue, oldValue) {
+                        $user(newValue);
+                    });
+
+                    $scope.logged = function() {
+                        return $jira.isReady();
+                    };
+
+                    $scope.check = function() {
+                        $jira.checkUser();
+                    };
+                };
+
+                function VersionController($scope, $jira, $mdDialog) {
+                    $scope.versions = {};
+                    $scope.projects = [
+                        {displayName: 'Bretagne / Breizhgo', key: 'BB', id: 10809, checked: true},
+                        {displayName: 'Centre / jvmalin', key: 'CJ', id: 10812, checked: true},
+                        {displayName: 'Champagne Ardenne / Vitici', key: 'CAV', id: 11507, checked: true},
+                        {displayName: 'CMS', key: 'CMS', id: 11520, checked: true},
+                        {displayName: 'NMP - P&P', key: 'PP', id: 11803, checked: true},
+                        {displayName: 'Pays de la Loire / destineo3', key: 'PDLLD', id: 11302, checked: true},
+                        {displayName: 'Rennes / Star', key: 'STAR', id: 12003, checked: true},
+                        {displayName: 'SQWAL', key: 'SQWAL', id: 10821, checked: true},
+                        {displayName: 'Basse Normandie / Comment j\'y vais', key: 'CRBN', id: 11001, checked: true},
+                        {displayName: 'Colvert', key: 'COL', id: 12613, checked: true}
+                    ];
+                    $scope.ready = function() {
+                        return $jira.isReady();
+                    };
+                    $scope.fetchVersions = function(projects) {
+                        $scope.versions = {};
+                        for (i=0; i<projects.length; i++) {
+                            var project = projects[i];
+                            if (project.checked) {
+                                $scope.fetchVersion(project);
+                            }
+                        }
+                    };
+                    $scope.fetchVersion = function(project) {
+                        $jira.get('project/' + project.id + '/versions').success(function(versions) {
+                            for(j=0; j<versions.length; j++) {
+                                var version = versions[j];
+                                $scope.addVersionToScope(version);
+                            }
+                        });
+                    };
+                    $scope.addVersionToScope = function(version){
+                        if (!version.released) {
+                            if($scope.versions[version.name] === void 0) {
+                                $scope.versions[version.name] = {
+                                    name: version.name,
+                                    projects: {}
+                                };
+                                for (i=0; i<$scope.projects.length; i++) {
+                                    var _project = $scope.projects[i];
+                                    if (_project.checked) {
+                                        $scope.versions[version.name].projects[_project.id] = {};
+                                    }
+                                }
+                            }
+                            $scope.versions[version.name].projects[version.projectId] = {
+                                description: version.description,
+                                id: version.id
+                            };
+                        } else if ($scope.versions[version.name] !== void 0) {
+                            $scope.versions[version.name].projects[version.projectId] = {};
+                            var removeVersion = true;
+                            for(i in $scope.versions[version.name].projects) {
+                                if (!angular.equals($scope.versions[version.name].projects[i], {})) {
+                                    removeVersion = false;
+                                    break;
+                                }
+                            }
+                            if (removeVersion) {
+                                delete $scope.versions[version.name];
+                            }
+                        }
+                    };
+                    $scope.releaseVersion = function(version) {
+                        for (i in version.projects) {
+                            var project = version.projects[i];
+                            if (project.id !== void 0) {
+                                var update = {
+                                    released: true
+                                };
+                                $jira.put('version/' + project.id, update).success(function(version) {
+                                    $scope.addVersionToScope(version);
+                                });
+                            }
+                        }
+                    };
+                    $scope.addVersions = function(version) {
+                        for (i=0; i<$scope.projects.length; i++) {
+                            var project = $scope.projects[i];
+                            if (project.checked) {
+                                var complete = {};
+                                angular.copy(version, complete);
+                                complete.projectId = project.id;
+                                $scope.addVersion(complete);
+                            }
+                        }
+                    };
+                    $scope.addVersion = function(version) {
+                        $jira.post('version', version).success(function(version) {
+                            $scope.addVersionToScope(version);
+                        });
+                    };
+                    $scope.showForm = function(ev) {
+                        $mdDialog.show({
+                            controller: VersionModalController,
+                            templateUrl: 'version.tmpl.html',
+                            targetEvent: ev,
+                        })
+                        .then(function(version) {
+                            $scope.addVersions(version);
+                        }, function() {});
+                    };
+                };
+
+                function VersionModalController($scope, $mdDialog) {
+                    $scope.version = {};
+                    $scope.hideForm = function() {
+                        $mdDialog.cancel();
+                    };
+                    $scope.submitForm = function() {
+                        $mdDialog.hide($scope.version);
+                    };
+                };
+        </script>
+
+    </body>
+</html>
