@@ -49,12 +49,12 @@
                         <tr ng-repeat="version in versions | orderBy: '-version'">
                             <td>
                                 {{ version.name }}
-                                <md-button ng-click="releaseVersion(version)" aria-label="Release version">
+                                <md-button ng-click="releaseVersion(version)" aria-label="Release version" ng-attribute-title="click to add this version to selected projects">
                                     <span class="glyphicon glyphicon-compressed" aria-hidden="true"></span>
                                     <md-tooltip>Release version</md-tooltip>
                                 </md-button>
                             </td>
-                            <td ng-repeat="selectedproject in projects | filter:{checked: true}" style="text-align: center;">
+                            <td ng-repeat="selectedproject in projects | filter:{checked: true}" style="text-align: center;border-right: 1px solid #ddd;">
                                 <span class="glyphicon glyphicon-ok" aria-hidden="true" ng-if="version.projects[selectedproject.id].description" title="{{ version.projects[selectedproject.id].description }}"></span>
                             </td>
                         </tr>
